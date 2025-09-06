@@ -1,0 +1,130 @@
+@extends('layouts.admin.admin_layout')
+
+@section('content')
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h2>Add Products</h2>
+</div>
+
+<div class="card border-0 shadow-sm p-4">
+    <form action="{{ route('products.store') }}" method="POST">
+        @csrf
+
+        <!-- Top Section -->
+        <div class="row mb-3">
+            <div class="col-md-4 position-relative">
+                <label for="product_name">Product Name</label>
+                <input type="text" name="product_name" id="product_name" class="form-control product-autocomplete" autocomplete="off" required>
+                <!-- Autocomplete dropdown -->
+                <ul id="product_suggestions" class="list-group position-absolute w-100" style="z-index:1000; display:none;"></ul>
+            </div>
+
+            <div class="col-md-4">
+                <label for="sku">SKU</label>
+                <input type="text" name="sku" id="sku" class="form-control">
+            </div>
+
+            <div class="col-md-4">
+                <label for="purchase_date">Purchase Date</label>
+                <input type="date" name="purchase_date" class="form-control" required>
+            </div>
+        </div>
+
+        <!-- Dynamic Section -->
+        <div id="movement-container">
+            <div class="movement-row row align-items-end mb-2">
+                <div class="col-md-2">
+                    <label>Type</label>
+                    <select name="type[]" class="form-control">
+                        <option value="">Select</option>
+                        <option value="rent">Rent</option>
+                        <option value="sale">Sale</option>
+                        <option value="common">Common</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label>Quantity</label>
+                    <input type="number" name="quantity[]" class="form-control" required>
+                </div>
+
+                <div class="col-md-2">
+                    <label>Buy Price</label>
+                    <input type="number" step="0.01" name="buy_price[]" class="form-control" required>
+                </div>
+
+                <div class="col-md-2">
+                    <label>Sale Price</label>
+                    <input type="number" step="0.01" name="sale_price[]" class="form-control">
+                </div>
+
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-success add-row">+ Add More</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary">Save Product</button>
+        </div>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Handle add/remove rows
+    document.addEventListener("DOMContentLoaded", function() {
+        let container = document.getElementById("movement-container");
+
+        container.addEventListener("click", function(e) {
+            if (e.target.classList.contains("add-row")) {
+                let row = e.target.closest(".movement-row");
+                let clone = row.cloneNode(true);
+
+                clone.querySelectorAll("input").forEach(input => input.value = "");
+                clone.querySelector(".add-row").classList.remove("btn-success", "add-row");
+                clone.querySelector("button").classList.add("btn-danger", "remove-row");
+                clone.querySelector("button").textContent = "Remove";
+
+                container.appendChild(clone);
+            }
+
+            if (e.target.classList.contains("remove-row")) {
+                e.target.closest(".movement-row").remove();
+            }
+        });
+
+        // Autocomplete search (after 4 letters)
+        $('#product_name').on('keyup', function(){
+            let query = $(this).val();
+            if(query.length >= 4){
+                $.ajax({
+                    url: "{{ route('products.autocomplete') }}",
+                    type: "GET",
+                    data: {query: query},
+                    success: function(data){
+                        let list = $('#product_suggestions');
+                        list.empty().show();
+                        if(data.length > 0){
+                            $.each(data, function(index, product){
+                                list.append('<li class="list-group-item suggestion-item" data-id="'+product.id+'" data-sku="'+product.sku+'">'+product.name+'</li>');
+                            });
+                        } else {
+                            list.hide();
+                        }
+                    }
+                });
+            } else {
+                $('#product_suggestions').hide();
+            }
+        });
+
+        // Click on suggestion
+        $(document).on('click', '.suggestion-item', function(){
+            $('#product_name').val($(this).text());
+            $('#sku').val($(this).data('sku'));
+            $('#product_suggestions').hide();
+        });
+    });
+</script>
+@endsection
