@@ -171,6 +171,11 @@
               <i class="bi bi-bar-chart-fill"></i> User
             </a>
           </li>
+          <li class="nav-item mb-2">
+            <a href="{{ route('products.index') }}" class="nav-link">
+              <i class="bi bi-bar-chart-fill"></i> Products
+            </a>
+          </li>
         </ul>
       </div>
       <div class="p-3">
