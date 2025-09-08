@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ExpenseController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -53,3 +55,12 @@ Route::post('/products', [ProductController::class, 'store'])->name('products.st
 // For autocomplete
 Route::get('/products/autocomplete', [ProductController::class, 'autocomplete'])->name('products.autocomplete');
 Route::get('/products/{id}/movements', [ProductController::class, 'movements'])->name('products.movements');
+
+//expense Tracker
+Route::get('/expense_tracker', [ExpenseController::class, 'index'])->name('expense');
+
+Route::prefix('admin')->group(function () {
+    Route::get('/categories', [App\Http\Controllers\Admin\CategoryController::class, 'index'])->name('categories.index');
+    Route::post('/categories', [App\Http\Controllers\Admin\CategoryController::class, 'store'])->name('categories.store');
+    Route::delete('/categories/{id}', [App\Http\Controllers\Admin\CategoryController::class, 'destroy'])->name('categories.destroy');
+});

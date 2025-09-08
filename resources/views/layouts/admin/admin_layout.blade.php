@@ -163,17 +163,22 @@
           </li>
           <li class="nav-item mb-2">
             <a href="{{ route('roles.index') }}" class="nav-link">
-              <i class="bi bi-bar-chart-fill"></i> Roles
+              <i class="bi bi-person-badge"></i> Roles
             </a>
           </li>
           <li class="nav-item mb-2">
             <a href="{{ route('users.index') }}" class="nav-link">
-              <i class="bi bi-bar-chart-fill"></i> User
+              <i class="bi bi-people"></i> User
             </a>
           </li>
           <li class="nav-item mb-2">
             <a href="{{ route('products.index') }}" class="nav-link">
-              <i class="bi bi-bar-chart-fill"></i> Products
+              <i class="bi bi-layers"></i> Products
+            </a>
+          </li>
+          <li class="nav-item mb-2">
+            <a  target="_blank"   href="{{ route('expense') }}" class="nav-link">
+              <i class="bi bi-cash-stack"></i> Expense Tracker
             </a>
           </li>
         </ul>
