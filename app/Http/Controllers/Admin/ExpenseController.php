@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Category;
+use App\Models\Expense;
+
 
 class ExpenseController extends Controller
 {
@@ -23,7 +25,7 @@ class ExpenseController extends Controller
             'medical'       => 620,
         ];
         $categories = Category::all();
-
-        return view('admin.expenses.dashboard', compact('summary','categories'));
+        $expenses = Expense::latest()->get();
+        return view('admin.expenses.dashboard', compact('summary','categories','expenses'));
     }
 }

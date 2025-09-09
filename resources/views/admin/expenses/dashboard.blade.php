@@ -28,7 +28,7 @@
                             <i class="fa-solid fa-plus toggle-btn"></i>
                             <div class="rail-menu">
                                 <a href="#" data-bs-toggle="modal" data-bs-target="#categoryModal">Add Category</a>
-                                <a href="#">Add Expense</a>
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#expenseModal">Add Expense/Income</a>
                             </div>
                         </div>
                     </div>
@@ -84,6 +84,75 @@
         </div>
     </div>
 </div>
+<!-- Add Expense/Income Modal -->
+<div class="modal fade" id="expenseModal" tabindex="-1" aria-labelledby="expenseModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="expenseModalLabel">Add Expense / Income</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Table -->
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Category</th>
+              <th>Remarks</th>
+              <th style="width:100px;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="expenseTableBody">
+
+            <!-- First row (input row with save button) -->
+            <tr id="newExpenseRow">
+                <td>
+                <select class="form-control" id="expType" required>
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                </select>
+                </td>
+              <td><input type="date" class="form-control" id="expDate" required></td>
+              
+              <td><input type="number" class="form-control" id="expAmount" required></td>
+              
+              <td>
+                <select class="form-control" id="expCategory" required>
+                  @foreach($categories as $cat)
+                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                  @endforeach
+                </select>
+              </td>
+              <td><input type="text" class="form-control" id="expRemarks"></td>
+              <td><button class="btn btn-success btn-sm" id="saveExpenseBtn">Save</button></td>
+            </tr>
+
+            <!-- Existing expenses will be listed here -->
+            @foreach($expenses as $exp)
+            <tr id="expenseRow{{ $exp->id }}">
+              <td>{{ $exp->type }}</td>
+              <td>{{ $exp->date }}</td>
+              <td>{{ $exp->amount }}</td>
+              <td>{{ $exp->category->name }}</td>
+              <td>{{ $exp->remarks }}</td>
+              <td>
+                <button class="btn btn-danger btn-sm deleteExpenseBtn" data-id="{{ $exp->id }}">Delete</button>
+              </td>
+            </tr>
+            @endforeach
+
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Add Category Modal -->
 <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
@@ -268,23 +337,27 @@ document.getElementById('categoryForm').addEventListener('submit', function(e) {
     .then(res => res.json())
     .then(res => {
         if(res.success){
-            // show success message
-            let msg = document.getElementById('successMessage');
-            msg.textContent = res.success;
-            msg.classList.remove('d-none');
-
-            // append new category
-            let tbody = document.getElementById('categoryTableBody');
+            let tbody = document.getElementById('expenseTableBody');
             let newRow = document.createElement('tr');
-            newRow.id = 'categoryRow' + res.category.id;
+            newRow.id = 'expenseRow' + res.expense.id;
             newRow.innerHTML = `
-                <td>${res.category.name}</td>
+                <td>${res.expense.type}</td>
+                <td>${res.expense.date}</td>
+                <td>${res.expense.amount}</td>
+                <td>${res.expense.category}</td>
+                <td>${res.expense.remarks}</td>
                 <td>
-                    <button class="btn btn-danger btn-sm deleteCategoryBtn" data-id="${res.category.id}">Delete</button>
-                </td>`;
-            tbody.appendChild(newRow);
+                    <button class="btn btn-danger btn-sm deleteExpenseBtn" data-id="${res.expense.id}">Delete</button>
+                </td>
+            `;
 
-            form.reset();
+            // insert at top instead of bottom
+            tbody.prepend(newRow);
+
+            // clear input fields
+            document.getElementById('expDate').value = '';
+            document.getElementById('expAmount').value = '';
+            document.getElementById('expRemarks').value = '';
         }
     })
     .catch(err => console.error(err));
@@ -318,5 +391,120 @@ document.getElementById('categoryTableBody').addEventListener('click', function(
 });
 </script>
 
+<script>
+    // Save new expense
+document.getElementById('saveExpenseBtn').addEventListener('click', function() {
+    // Clear old errors
+    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    document.querySelectorAll('.error-msg').forEach(el => el.remove());
+
+    let type = document.getElementById('expType');
+    let date = document.getElementById('expDate');
+    let amount = document.getElementById('expAmount');
+    let category = document.getElementById('expCategory');
+    let remarks = document.getElementById('expRemarks');
+    let token = document.querySelector('input[name=_token]').value;
+
+    let hasError = false;
+
+    function showError(input, message) {
+        input.classList.add('is-invalid');
+        let error = document.createElement('div');
+        error.className = 'text-danger error-msg';
+        error.innerText = message;
+        input.parentNode.appendChild(error);
+    }
+
+    if (!type.value) {
+        showError(type, "Type is required");
+        hasError = true;
+    }
+    if (!date.value) {
+        showError(date, "Date is required");
+        hasError = true;
+    }
+    if (!amount.value || isNaN(amount.value)) {
+        showError(amount, "Enter a valid amount");
+        hasError = true;
+    }
+    if (!category.value) {
+        showError(category, "Category is required");
+        hasError = true;
+    }
+
+    // remarks not mandatory → default to "-"
+    let remarksVal = remarks.value.trim() || "-";
+
+    if (hasError) return; // stop here if invalid
+
+    // your existing save functionality
+    let data = {
+        type: type.value,
+        date: date.value,
+        amount: amount.value,
+        category_id: category.value,
+        remarks: remarksVal,
+        _token: token
+    };
+
+    fetch('/admin/expenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': data._token },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(res => {
+        if(res.success){
+            let tbody = document.getElementById('expenseTableBody');
+            let newRow = document.createElement('tr');
+            newRow.id = 'expenseRow' + res.expense.id;
+            newRow.innerHTML = `
+                <td>${res.expense.type}</td>
+                <td>${res.expense.date}</td>
+                <td>${res.expense.amount}</td>
+                <td>${res.expense.category}</td>
+                <td>${res.expense.remarks}</td>
+                <td><button class="btn btn-danger btn-sm deleteExpenseBtn" data-id="${res.expense.id}">Delete</button></td>
+            `;
+
+            // insert row just after the "newExpenseRow"
+            let firstRow = document.getElementById('newExpenseRow').nextSibling;
+            tbody.insertBefore(newRow, firstRow);
+
+            // clear input fields
+            document.getElementById('expType').selectedIndex = 0;  
+            document.getElementById('expDate').value = '';
+            document.getElementById('expAmount').value = '';
+            document.getElementById('expCategory').selectedIndex = 0;
+            document.getElementById('expRemarks').value = '';
+        }
+    })
+
+    .catch(err => console.error(err));
+});
+
+
+// Delete expense
+document.getElementById('expenseTableBody').addEventListener('click', function(e){
+    if(e.target.classList.contains('deleteExpenseBtn')){
+        if(confirm('Delete this entry?')){
+            let id = e.target.dataset.id;
+            fetch('/admin/expenses/' + id, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value }
+            })
+            .then(res => res.json())
+            .then(res => {
+                if(res.success){
+                    let row = document.getElementById('expenseRow' + res.id);
+                    row.remove();
+                }
+            })
+            .catch(err => console.error(err));
+        }
+    }
+});
+
+    </script>
 
 @endsection

@@ -9,8 +9,16 @@
 
 <!-- Bootstrap JS (bundle includes Popper) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
 
         <style>
+            .is-invalid {
+                border: 1px solid red !important;
+            }
+
                 .rail-head {
                     display: flex;
                     justify-content: space-between;
@@ -226,5 +234,21 @@
     </head>
     <body>
             @yield('content')
+            <script>
+$(document).ready(function() {
+    // Initialize the DataTable
+    var expenseTable = $('#expenseTableBody').closest('table').DataTable({
+        paging: true,
+        searching: true,
+        ordering: true,
+        columnDefs: [
+            { orderable: false, targets: 5 } // Disable ordering on "Action" column
+        ]
+    });
+
+});
+</script>
+
     </body>
+
 </html>
