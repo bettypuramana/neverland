@@ -102,7 +102,7 @@
             .board-inner{ padding:18px 18px 22px; }
             .head{
                 display:grid;
-                grid-template-columns: 180px 1fr 120px;
+                grid-template-columns: 180px 1fr 145px;
                 align-items:center;
                 gap:10px;
                 margin-bottom:12px;
@@ -210,7 +210,7 @@
             .row1{
                 grid-area:row1;
                 display:grid;
-                grid-template-columns: 32% 34% 34%;
+                grid-template-columns: 50% 50%;
                 gap:14px;
             }
             .row2{
