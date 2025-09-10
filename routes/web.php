@@ -64,3 +64,14 @@ Route::prefix('admin')->group(function () {
     Route::post('/categories', [App\Http\Controllers\Admin\CategoryController::class, 'store'])->name('categories.store');
     Route::delete('/categories/{id}', [App\Http\Controllers\Admin\CategoryController::class, 'destroy'])->name('categories.destroy');
 });
+
+
+Route::prefix('admin')->group(function () {
+    // Categories (already there)
+    Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class);
+
+    // Expenses/Income
+    Route::get('/expenses', [App\Http\Controllers\Admin\ExpenseController::class, 'index'])->name('expenses.index');
+    Route::post('/expenses', [App\Http\Controllers\Admin\CategoryController::class, 'storeexp'])->name('expenses.store');
+    Route::delete('/expenses/{id}', [App\Http\Controllers\Admin\CategoryController::class, 'destroyexp'])->name('expenses.destroy');
+});

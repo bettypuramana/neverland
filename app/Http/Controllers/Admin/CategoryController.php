@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Category;
+use App\Models\Expense;
 
 class CategoryController extends Controller
 {
@@ -35,6 +36,48 @@ class CategoryController extends Controller
             'id' => $id
         ]);
     }
+
+    // Store new expense
+public function storeexp(Request $request)
+{
+    // ✅ Validate request
+    $validated = $request->validate([
+        'date' => 'required|date',
+        'amount' => 'required|numeric',
+        'type' => 'required|in:income,expense',
+        'category_id' => 'required|exists:categories,id',
+        'remarks' => 'nullable|string',
+    ]);
+
+    // ✅ Create Expense
+    $expense = Expense::create($validated);
+
+    // ✅ Return JSON response with category relationship
+    return response()->json([
+        'success' => 'Expense saved successfully!',
+        'expense' => [
+            'id'       => $expense->id,
+            'date'     => $expense->date,
+            'amount'   => $expense->amount,
+            'type'     => $expense->type,
+            'category' => $expense->category ? $expense->category->name : null,
+            'remarks'  => $expense->remarks ?? '',
+        ]
+    ]);
+}
+
+
+// Delete expense
+public function destroyexp($id)
+{
+    $exp = Expense::findOrFail($id);
+    $exp->delete();
+    return response()->json([
+        'success' => 'Expense deleted successfully!',
+        'id' => $id
+    ]);
+}
+
 
 
 }
