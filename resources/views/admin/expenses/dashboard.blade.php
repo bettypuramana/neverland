@@ -216,7 +216,9 @@
                 <tr id="categoryRow{{ $category->id }}">
                     <td>{{ $category->name }}</td>
                     <td>
-                        <button class="btn btn-danger btn-sm deleteCategoryBtn" data-id="{{ $category->id }}">Delete</button>
+                        @if(!in_array($category->name, ['Pool Collection', 'Item Purchase']))
+                            <button class="btn btn-danger btn-sm deleteCategoryBtn" data-id="{{ $category->id }}">Delete</button>
+                        @endif
                     </td>
                 </tr>
                 @endforeach
@@ -369,39 +371,54 @@ document.getElementById('categoryForm').addEventListener('submit', function(e) {
 
     fetch(form.action, {
         method: 'POST',
-        headers: { 'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value },
+        headers: { 
+            'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value,
+            'Accept': 'application/json'   // ✅ important for validation errors
+        },
         body: data
     })
-    .then(res => res.json())
+
+    .then(async res => {
+        if (!res.ok) {
+            // handle validation errors
+            let err = await res.json();
+            let msg = document.getElementById('successMessage');
+            msg.textContent = err.errors?.name ? err.errors.name[0] : 'Something went wrong!';
+            msg.classList.remove('d-none');
+            msg.classList.replace('alert-success','alert-danger');
+            throw new Error(msg.textContent);
+        }
+        return res.json();
+    })
     .then(res => {
         if(res.success){
-            let tbody = document.getElementById('expenseTableBody');
+            // ✅ Show success message
+            let msg = document.getElementById('successMessage');
+            msg.textContent = res.success;
+            msg.classList.remove('d-none');
+            msg.classList.replace('alert-danger','alert-success');
+
+            // ✅ Add new row to category table
+            let tbody = document.getElementById('categoryTableBody');
             let newRow = document.createElement('tr');
-            newRow.id = 'expenseRow' + res.expense.id;
+            newRow.id = 'categoryRow' + res.category.id;
             newRow.innerHTML = `
-                <td>${res.expense.type}</td>
-                <td>${res.expense.date}</td>
-                <td>${res.expense.amount}</td>
-                <td>${res.expense.category}</td>
-                <td>${res.expense.remarks}</td>
+                <td>${res.category.name}</td>
                 <td>
-                    <button class="btn btn-danger btn-sm deleteExpenseBtn" data-id="${res.expense.id}">Delete</button>
+                    <button class="btn btn-danger btn-sm deleteCategoryBtn" data-id="${res.category.id}">Delete</button>
                 </td>
             `;
-
-            // insert at top instead of bottom
             tbody.prepend(newRow);
 
-            // clear input fields
-            document.getElementById('expDate').value = '';
-            document.getElementById('expAmount').value = '';
-            document.getElementById('expRemarks').value = '';
+            // ✅ Clear input
+            form.reset();
         }
     })
     .catch(err => console.error(err));
 });
 
-// Delete Category
+
+
 document.getElementById('categoryTableBody').addEventListener('click', function(e){
     if(e.target.classList.contains('deleteCategoryBtn')){
         if(confirm('Delete this category?')){
@@ -417,16 +434,25 @@ document.getElementById('categoryTableBody').addEventListener('click', function(
                     let row = document.getElementById('categoryRow' + res.id);
                     row.remove();
 
-                    // optional: show success message
+                    // show success message
                     let msg = document.getElementById('successMessage');
                     msg.textContent = res.success;
                     msg.classList.remove('d-none');
+                    msg.classList.replace('alert-danger','alert-success');
+                }
+                else if(res.error){
+                    // show error message
+                    let msg = document.getElementById('successMessage');
+                    msg.textContent = res.error;
+                    msg.classList.remove('d-none');
+                    msg.classList.replace('alert-success','alert-danger');
                 }
             })
             .catch(err => console.error(err));
         }
     }
 });
+
 </script>
 
 <script>
