@@ -75,3 +75,7 @@ Route::prefix('admin')->group(function () {
     Route::post('/expenses', [App\Http\Controllers\Admin\CategoryController::class, 'storeexp'])->name('expenses.store');
     Route::delete('/expenses/{id}', [App\Http\Controllers\Admin\CategoryController::class, 'destroyexp'])->name('expenses.destroy');
 });
+
+Route::post('/products/movements/store', [ProductController::class, 'storeMovement'])
+    ->name('products.movements.store');
+

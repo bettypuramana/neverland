@@ -15,7 +15,7 @@ class ExpenseController extends Controller
      */
    public function index(Request $request)
 {
-    $categories = Category::all();
+    $categories = Category::orderBy('id', 'desc')->get();
 
     // All financial years
     $financialYears = Financial_year::orderBy('start_date', 'desc')->get();

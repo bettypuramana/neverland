@@ -72,59 +72,92 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // Handle add/remove rows
-    document.addEventListener("DOMContentLoaded", function() {
-        let container = document.getElementById("movement-container");
+document.addEventListener("DOMContentLoaded", function() {
+    let container = document.getElementById("movement-container");
 
-        container.addEventListener("click", function(e) {
-            if (e.target.classList.contains("add-row")) {
-                let row = e.target.closest(".movement-row");
-                let clone = row.cloneNode(true);
+    // 🔹 Refresh select options to prevent duplicates
+    function refreshSelectOptions() {
+        let selectedValues = Array.from(document.querySelectorAll("select[name='type[]']"))
+            .map(select => select.value)
+            .filter(val => val !== "");
 
-                clone.querySelectorAll("input").forEach(input => input.value = "");
-                clone.querySelector(".add-row").classList.remove("btn-success", "add-row");
-                clone.querySelector("button").classList.add("btn-danger", "remove-row");
-                clone.querySelector("button").textContent = "Remove";
-
-                container.appendChild(clone);
-            }
-
-            if (e.target.classList.contains("remove-row")) {
-                e.target.closest(".movement-row").remove();
-            }
+        document.querySelectorAll("select[name='type[]']").forEach(select => {
+            Array.from(select.options).forEach(option => {
+                if (option.value !== "" && selectedValues.includes(option.value) && option.value !== select.value) {
+                    option.disabled = true;
+                } else {
+                    option.disabled = false;
+                }
+            });
         });
+    }
 
-        // Autocomplete search (after 4 letters)
-        $('#product_name').on('keyup', function(){
-            let query = $(this).val();
-            if(query.length >= 4){
-                $.ajax({
-                    url: "{{ route('products.autocomplete') }}",
-                    type: "GET",
-                    data: {query: query},
-                    success: function(data){
-                        let list = $('#product_suggestions');
-                        list.empty().show();
-                        if(data.length > 0){
-                            $.each(data, function(index, product){
-                                list.append('<li class="list-group-item suggestion-item" data-id="'+product.id+'" data-sku="'+product.sku+'">'+product.name+'</li>');
-                            });
-                        } else {
-                            list.hide();
-                        }
-                    }
-                });
-            } else {
-                $('#product_suggestions').hide();
-            }
-        });
+    // 🔹 Add / Remove Row
+    container.addEventListener("click", function(e) {
+        if (e.target.classList.contains("add-row")) {
+            let row = e.target.closest(".movement-row");
+            let clone = row.cloneNode(true);
 
-        // Click on suggestion
-        $(document).on('click', '.suggestion-item', function(){
-            $('#product_name').val($(this).text());
-            $('#sku').val($(this).data('sku'));
-            $('#product_suggestions').hide();
-        });
+            // Clear cloned row inputs
+            clone.querySelectorAll("input").forEach(input => input.value = "");
+            clone.querySelector("select").value = "";
+
+            // Change Add button → Remove
+            let btn = clone.querySelector("button");
+            btn.classList.remove("btn-success", "add-row");
+            btn.classList.add("btn-danger", "remove-row");
+            btn.textContent = "Remove";
+
+            container.appendChild(clone);
+
+            refreshSelectOptions();
+        }
+
+        if (e.target.classList.contains("remove-row")) {
+            e.target.closest(".movement-row").remove();
+            refreshSelectOptions();
+        }
     });
+
+    // 🔹 Update selects when value changes
+    document.addEventListener("change", function(e) {
+        if (e.target.name === "type[]") {
+            refreshSelectOptions();
+        }
+    });
+
+    // 🔹 Autocomplete search (after 4 letters)
+    $('#product_name').on('keyup', function(){
+        let query = $(this).val();
+        if(query.length >= 4){
+            $.ajax({
+                url: "{{ route('products.autocomplete') }}",
+                type: "GET",
+                data: {query: query},
+                success: function(data){
+                    let list = $('#product_suggestions');
+                    list.empty().show();
+                    if(data.length > 0){
+                        $.each(data, function(index, product){
+                            list.append('<li class="list-group-item suggestion-item" data-id="'+product.id+'" data-sku="'+product.sku+'">'+product.name+'</li>');
+                        });
+                    } else {
+                        list.hide();
+                    }
+                }
+            });
+        } else {
+            $('#product_suggestions').hide();
+        }
+    });
+
+    // 🔹 Click on suggestion
+    $(document).on('click', '.suggestion-item', function(){
+        $('#product_name').val($(this).text());
+        $('#sku').val($(this).data('sku'));
+        $('#product_suggestions').hide();
+    });
+});
 </script>
+
 @endsection
