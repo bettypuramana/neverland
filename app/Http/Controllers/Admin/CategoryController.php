@@ -17,7 +17,10 @@ class CategoryController extends Controller
 
    public function store(Request $request)
     {
-        $request->validate(['name' => 'required|string|max:255']);
+        $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name'
+        ]);
+
         $category = Category::create($request->only('name'));
 
         return response()->json([
@@ -26,9 +29,20 @@ class CategoryController extends Controller
         ]);
     }
 
+
   public function destroy($id)
     {
-        $category = Category::findOrFail($id); // fetch manually
+        $category = Category::findOrFail($id);
+
+        // Check if this category is used in expenses
+        $usedInExpenses = \App\Models\Expense::where('category_id', $id)->exists();
+
+        if ($usedInExpenses) {
+            return response()->json([
+                'error' => 'Cannot delete: This category is already used in expenses.'
+            ], 400); // 400 Bad Request
+        }
+
         $category->delete();
 
         return response()->json([
@@ -36,6 +50,7 @@ class CategoryController extends Controller
             'id' => $id
         ]);
     }
+
 
     // Store new expense
 public function storeexp(Request $request)

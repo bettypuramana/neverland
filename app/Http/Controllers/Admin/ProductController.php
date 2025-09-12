@@ -28,8 +28,8 @@ class ProductController extends Controller
                 ->first();
 
             $product->last_purchased_date = $lastPurchase
-    ? Carbon::parse($lastPurchase->purchase_date)->format('d-m-Y')
-    : '-';
+                ? Carbon::parse($lastPurchase->purchase_date)->format('d-m-Y')
+                : '-';
             return $product;
         });
 
@@ -107,5 +107,37 @@ class ProductController extends Controller
 
         return response()->json($products);
     }
+
+    public function storeMovement(Request $request)
+    {
+        $user_id = Auth::id();
+
+        // ✅ Validate fields
+        $request->validate([
+            'product_id'     => 'required|exists:products,id',
+            'purchase_date'  => 'required|date',
+            'type.*'         => 'required|string|in:rent,sale,common',
+            'quantity.*'     => 'required|integer|min:1',
+            'buy_price.*'    => 'required|numeric|min:0',
+            'sale_price.*'   => 'nullable|numeric|min:0',
+        ]);
+
+        // ✅ Insert into product_movements for each row
+        foreach ($request->type as $index => $type) {
+            $movement = new ProductMovement();
+            $movement->product_id     = $request->product_id;
+            $movement->purchase_date  = $request->purchase_date;
+            $movement->movement_type  = $type;
+            $movement->quantity       = $request->quantity[$index];
+            $movement->buy_price      = $request->buy_price[$index];
+            $movement->sale_price     = $request->sale_price[$index] ?? null;
+            $movement->created_by     = $user_id;
+            $movement->save();
+        }
+
+        return redirect()->route('products.index')
+                        ->with('success', 'Product movements saved successfully!');
+    }
+
 
 }

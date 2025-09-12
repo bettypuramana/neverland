@@ -1,10 +1,7 @@
-{{-- resources/views/admin/expenses/dashboard.blade.php --}}
 @extends('layouts.admin.expense_layout')
 
 @section('content')
 
-
-<div >
     <div class="board">
         <div class="board-inner">
             <div class="head">
@@ -14,8 +11,16 @@
                 </div>
                 <div class="title">FINANCE EXPENSES DASHBOARD</div>
                 <div class="head-tools">
-                    <a class="btn-icon" href="#"><i class="fa-solid fa-rotate"></i></a>
-                    <a class="btn-icon" href="#"><i class="fa-regular fa-display"></i></a>
+                    {{-- Financial Year Dropdown --}}
+                    <form method="GET" action="{{ route('expenses.index') }}">
+                        <select name="financial_year_id" onchange="this.form.submit()" class="form-select">
+                            @foreach($financialYears as $fy)
+                                <option value="{{ $fy->id }}" {{ $fy->id == $selectedFY ? 'selected' : '' }}>
+                                    {{ $fy->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
                 </div>
             </div>
 
@@ -33,10 +38,21 @@
                         </div>
                     </div>
                     <ul class="months" id="monthsList">
-                        @php $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; @endphp
-                        @foreach ($months as $i => $m)
-                            <li class="{{ $i===0 ? 'active':'' }}">{{ $m }}</li>
-                        @endforeach
+                        <li class="list-group-item {{ !$selectedMonth ? 'active' : '' }}">
+                            <a  style="color: #b9c2cd;" href="{{ route('expenses.index', ['financial_year_id' => $selectedFY]) }}" class="d-block text-decoration-none">
+                                All
+                            </a>
+                        </li>
+
+                        @forelse($months as $month)
+                            <li class="list-group-item {{ $selectedMonth == $month->month_key ? 'active' : '' }}">
+                                <a  style="color: #b9c2cd;" href="{{ route('expenses.index', ['financial_year_id' => $selectedFY, 'month' => $month->month_key]) }}" class="d-block text-decoration-none">
+                                    {{ $month->month_label }}
+                                </a>
+                            </li>
+                        @empty
+                            <li class="list-group-item text-muted">No expenses found for this year</li>
+                        @endforelse
                     </ul>
                 </aside>
 
@@ -44,26 +60,40 @@
                 <section class="content">
                     <!-- tiles -->
                     <div class="tiles">
-                        <div class="tile"><i class="fa-solid fa-house"></i><div><div class="lbl">Living Expenses</div><div class="amt">$19,442</div></div></div>
-                        <div class="tile"><i class="fa-solid fa-bag-shopping"></i><div><div class="lbl">Discretionary</div><div class="amt">$7,917</div></div></div>
-                        <div class="tile"><i class="fa-solid fa-bus-simple"></i><div><div class="lbl">Transport</div><div class="amt">$4,245</div></div></div>
-                        <div class="tile"><i class="fa-solid fa-utensils"></i><div><div class="lbl">Dining Out</div><div class="amt">$2,843</div></div></div>
-                        <div class="tile"><i class="fa-solid fa-hands-holding-heart"></i><div><div class="lbl">Charity</div><div class="amt">$1,729</div></div></div>
-                        <div class="tile"><i class="fa-solid fa-notes-medical"></i><div><div class="lbl">Medical</div><div class="amt">$620</div></div></div>
+    <!-- Total Income -->
+                        <div class="tile">
+                            <i class="fa-solid fa-wallet"></i>
+                            <div>
+                                <div class="lbl">Total Income</div>
+                                <div class="amt">₹{{ number_format($totalIncome, 2) }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Category-wise Expenses -->
+                        @foreach($categoryExpenses as $catId => $amount)
+                            @php
+                                $cat = $categories->firstWhere('id', $catId);
+                            @endphp
+                            <div class="tile">
+                                <i class="fa-solid fa-tag"></i>
+                                <div>
+                                    <div class="lbl">{{ $cat ? $cat->name : 'Unknown' }}</div>
+                                    <div class="amt">₹{{ number_format($amount, 2) }}</div>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
+
 
                     <!-- row 1: donut + category bar + subcategory bar -->
                     <div class="row1">
-                        <div class="card">
-                            <h6>Total Spend by Account</h6>
-                            <canvas id="donutAccounts"></canvas>
-                        </div>
+                        
                         <div class="card">
                             <h6>Expenses by Category</h6>
                             <canvas id="barCategory"></canvas>
                         </div>
                         <div class="card">
-                            <h6>All Expenses by Subcategory</h6>
+                            <h6>All Expenses by Category</h6>
                             <canvas id="barSubcat"></canvas>
                         </div>
                     </div>
@@ -83,7 +113,6 @@
             </div>
         </div>
     </div>
-</div>
 <!-- Add Expense/Income Modal -->
 <div class="modal fade" id="expenseModal" tabindex="-1" aria-labelledby="expenseModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl">
@@ -187,7 +216,9 @@
                 <tr id="categoryRow{{ $category->id }}">
                     <td>{{ $category->name }}</td>
                     <td>
-                        <button class="btn btn-danger btn-sm deleteCategoryBtn" data-id="{{ $category->id }}">Delete</button>
+                        @if(!in_array($category->name, ['Pool Collection', 'Item Purchase']))
+                            <button class="btn btn-danger btn-sm deleteCategoryBtn" data-id="{{ $category->id }}">Delete</button>
+                        @endif
                     </td>
                 </tr>
                 @endforeach
@@ -213,46 +244,46 @@ const basePlugins = {
 };
 
 /* ---------- Donut with center value ---------- */
-const donut = new Chart(document.getElementById('donutAccounts'), {
-    type: 'doughnut',
-    data: {
-        labels: ['Checking', 'Credit', 'Cash'],
-        datasets: [{
-            data: [41, 42, 17],
-            backgroundColor: ['#4da3ff','#7dd3fc','#47c37a'],
-            borderWidth:0
-        }]
-    },
-    options: {
-        cutout: '70%',
-        plugins: basePlugins
-    },
-    plugins: [{
-        // draw center text
-        id:'centerText',
-        afterDraw(chart, args, opts){
-            const {ctx, chartArea:{width,height}} = chart;
-            ctx.save();
-            ctx.fillStyle = '#eaf2fb';
-            ctx.font = '700 22px Montserrat';
-            ctx.textAlign = 'center';
-            ctx.fillText('$36,795', chart.getDatasetMeta(0).data[0].x, chart.getDatasetMeta(0).data[0].y+6);
-            ctx.restore();
-        }
-    }]
-});
+
 
 /* ---------- Expenses by Category (with positives/negatives like the shot) ---------- */
-const catLabels = ['Salary','Living','Charity','Dining Out','Discretionary','Medical','Transport'];
-const catValues = [48000,-19442,-495,-2843,-7917,-379,-4245];
-const catColors = catValues.map(v => v >= 0 ? '#4da3ff' : '#e25d5d');
+const catLabels  = @json($categoryAllLabels);
+const catIncome  = @json($categoryIncomeData);
+const catExpense = @json($categoryExpenseData);
 
 new Chart(document.getElementById('barCategory'), {
     type: 'bar',
-    data: { labels: catLabels, datasets: [{ data: catValues, backgroundColor: catColors, borderRadius:6 }] },
+    data: {
+        labels: catLabels,
+        datasets: [
+            {
+                label: 'Income',
+                data: catIncome,
+                backgroundColor: '#4da3ff', // blue
+                borderRadius: 6
+            },
+            {
+                label: 'Expense',
+                data: catExpense.map(v => -v), // negative for downward bar
+                backgroundColor: '#e25d5d', // red
+                borderRadius: 6
+            }
+        ]
+    },
     options: {
+        responsive: true,
         scales: darkScales,
-        plugins: basePlugins
+        plugins: {
+            ...basePlugins,
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let value = context.raw;
+                        return (value < 0 ? '-' : '') + '₹' + Math.abs(value);
+                    }
+                }
+            }
+        }
     }
 });
 
@@ -260,9 +291,12 @@ new Chart(document.getElementById('barCategory'), {
 new Chart(document.getElementById('barSubcat'), {
     type: 'bar',
     data: {
-        labels: ['Taxi','Restaurant','Rent','Phone','MV Fuel','Gym','Groceries','Gifts','Gas/Electric','Furnishing','Entertainment','Donation','Doctor','Coffee','Others'],
-        datasets: [{ data: [698,1528,10854,480,1747,360,7464,495,644,1155,3733,620,1179,315,1835],
-            backgroundColor:'#f07b6a', borderRadius:6 }]
+        labels: @json($categoryChartLabels),
+        datasets: [{
+            data: @json($categoryChartData),
+            backgroundColor:'#f07b6a',
+            borderRadius:6
+        }]
     },
     options: {
         indexAxis: 'y',
@@ -272,41 +306,47 @@ new Chart(document.getElementById('barSubcat'), {
 });
 
 /* ---------- Tiny total income vs expenses (left bottom) ---------- */
-new Chart(document.getElementById('hBarTotals'), {
-    type: 'bar',
-    data: {
-        labels: ['Income','Expenses'],
-        datasets: [{
-            data: [48000, -35320],
-            backgroundColor: ['#47c37a','#e25d5d'],
-            borderRadius:6
-        }]
-    },
-    options: {
-        indexAxis:'y',
-        scales: darkScales,
-        plugins: basePlugins
-    }
-});
+    const income = {{ $totalIncome ?? 0 }};
+    const expenses = {{ $totalExpenses ?? 0 }};
+
+    new Chart(document.getElementById('hBarTotals'), {
+        type: 'bar',
+        data: {
+            labels: ['Income','Expenses'],
+            datasets: [{
+                data: [income, -expenses],
+                backgroundColor: ['#47c37a','#e25d5d'],
+                borderRadius: 6
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            scales: darkScales,
+            plugins: basePlugins
+        }
+    });
 
 /* ---------- Monthly grouped bars ---------- */
-new Chart(document.getElementById('barMonthly'), {
-    type: 'bar',
-    data: {
-        labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-        datasets: [
-            { label:'Income', data:[4400,4200,4100,4300,4200,4000,3900,4100,4000,4200,4300,4400], backgroundColor:'#47c37a', borderRadius:6 },
-            { label:'Expenses', data:[2900,3100,3080,3000,3200,3100,3300,3220,3190,3210,3000,3100], backgroundColor:'#e25d5d', borderRadius:6 }
-        ]
-    },
-    options: {
-        scales: darkScales,
-        plugins: {
-            ...basePlugins,
-            legend: { labels: { color:'#d7e4ef' } }
+    const monthlyIncome = @json($incomeData);
+    const monthlyExpenses = @json($expenseData);
+
+    new Chart(document.getElementById('barMonthly'), {
+        type: 'bar',
+        data: {
+            labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+            datasets: [
+                { label:'Income', data: monthlyIncome, backgroundColor:'#47c37a', borderRadius:6 },
+                { label:'Expenses', data: monthlyExpenses, backgroundColor:'#e25d5d', borderRadius:6 }
+            ]
+        },
+        options: {
+            scales: darkScales,
+            plugins: {
+                ...basePlugins,
+                legend: { labels: { color:'#d7e4ef' } }
+            }
         }
-    }
-});
+    });
 
 /* ---------- Month pill active state (UI only) ---------- */
 document.querySelectorAll('#monthsList li').forEach(li=>{
@@ -331,39 +371,54 @@ document.getElementById('categoryForm').addEventListener('submit', function(e) {
 
     fetch(form.action, {
         method: 'POST',
-        headers: { 'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value },
+        headers: { 
+            'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value,
+            'Accept': 'application/json'   // ✅ important for validation errors
+        },
         body: data
     })
-    .then(res => res.json())
+
+    .then(async res => {
+        if (!res.ok) {
+            // handle validation errors
+            let err = await res.json();
+            let msg = document.getElementById('successMessage');
+            msg.textContent = err.errors?.name ? err.errors.name[0] : 'Something went wrong!';
+            msg.classList.remove('d-none');
+            msg.classList.replace('alert-success','alert-danger');
+            throw new Error(msg.textContent);
+        }
+        return res.json();
+    })
     .then(res => {
         if(res.success){
-            let tbody = document.getElementById('expenseTableBody');
+            // ✅ Show success message
+            let msg = document.getElementById('successMessage');
+            msg.textContent = res.success;
+            msg.classList.remove('d-none');
+            msg.classList.replace('alert-danger','alert-success');
+
+            // ✅ Add new row to category table
+            let tbody = document.getElementById('categoryTableBody');
             let newRow = document.createElement('tr');
-            newRow.id = 'expenseRow' + res.expense.id;
+            newRow.id = 'categoryRow' + res.category.id;
             newRow.innerHTML = `
-                <td>${res.expense.type}</td>
-                <td>${res.expense.date}</td>
-                <td>${res.expense.amount}</td>
-                <td>${res.expense.category}</td>
-                <td>${res.expense.remarks}</td>
+                <td>${res.category.name}</td>
                 <td>
-                    <button class="btn btn-danger btn-sm deleteExpenseBtn" data-id="${res.expense.id}">Delete</button>
+                    <button class="btn btn-danger btn-sm deleteCategoryBtn" data-id="${res.category.id}">Delete</button>
                 </td>
             `;
-
-            // insert at top instead of bottom
             tbody.prepend(newRow);
 
-            // clear input fields
-            document.getElementById('expDate').value = '';
-            document.getElementById('expAmount').value = '';
-            document.getElementById('expRemarks').value = '';
+            // ✅ Clear input
+            form.reset();
         }
     })
     .catch(err => console.error(err));
 });
 
-// Delete Category
+
+
 document.getElementById('categoryTableBody').addEventListener('click', function(e){
     if(e.target.classList.contains('deleteCategoryBtn')){
         if(confirm('Delete this category?')){
@@ -379,16 +434,25 @@ document.getElementById('categoryTableBody').addEventListener('click', function(
                     let row = document.getElementById('categoryRow' + res.id);
                     row.remove();
 
-                    // optional: show success message
+                    // show success message
                     let msg = document.getElementById('successMessage');
                     msg.textContent = res.success;
                     msg.classList.remove('d-none');
+                    msg.classList.replace('alert-danger','alert-success');
+                }
+                else if(res.error){
+                    // show error message
+                    let msg = document.getElementById('successMessage');
+                    msg.textContent = res.error;
+                    msg.classList.remove('d-none');
+                    msg.classList.replace('alert-success','alert-danger');
                 }
             })
             .catch(err => console.error(err));
         }
     }
 });
+
 </script>
 
 <script>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard || Neverland Aquatics</title>
+    <title>@yield('title')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
@@ -20,7 +20,7 @@
       }
 
       .logout-btn {
-          background-color: #f55d5d;
+          background-color: #8085c2;
           color: white;
           font-weight: 500;
           border: none;
@@ -65,17 +65,17 @@
       .sidebar .nav-link:hover,
       .sidebar .nav-link.active {
         background-color: #e6efff;
-        color: #f55d5d;
+        color: #8085c2;
       }
 
       .fw-semibold{
-        color: #f55d5d;
+        color: #8085c2;
       }
       .btn-primary-subtle{
-         color: #f55d5d;
+         color: #8085c2;
       }
       .btn-primary{
-         background-color: #f55d5d;
+         background-color: #8085c2;
       }
 
       .sidebar .nav-link i {
@@ -179,6 +179,11 @@
           <li class="nav-item mb-2">
             <a href="{{ route('products.index') }}" class="nav-link">
               <i class="bi bi-layers"></i> Products
+            </a>
+          </li>
+          <li class="nav-item mb-2">
+            <a  target="_blank"   href="{{ route('settlements.index') }}" class="nav-link">
+              <i class="bi bi-clipboard-check"></i> Settlements
             </a>
           </li>
           <li class="nav-item mb-2">
