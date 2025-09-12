@@ -37,7 +37,7 @@ class ExpenseController extends Controller
         $expensesQuery->whereRaw("DATE_FORMAT(date, '%Y-%m') = ?", [$selectedMonth]);
     }
 
-    $expenses = $expensesQuery->orderBy('date', 'desc')->get();
+    $expenses = $expensesQuery->orderBy('id', 'desc')->get();
 
     // Distinct months for this FY (for pills UI)
     $months = Expense::selectRaw("DISTINCT DATE_FORMAT(date, '%Y-%m') as month_key, DATE_FORMAT(date, '%M') as month_label")

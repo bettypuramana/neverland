@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ExpenseController;
+use App\Http\Controllers\Admin\SettlementController;
 
 
 /*
@@ -79,3 +80,12 @@ Route::prefix('admin')->group(function () {
 Route::post('/products/movements/store', [ProductController::class, 'storeMovement'])
     ->name('products.movements.store');
 
+
+Route::prefix('settlements')->group(function () {
+    Route::get('/', [SettlementController::class, 'index'])->name('settlements.index');
+    Route::post('/', [SettlementController::class, 'store'])->name('settlements.store');
+    Route::post('/settle', [SettlementController::class, 'settleDay'])->name('settlements.settle');
+    Route::delete('/{id}', [SettlementController::class, 'destroy'])->name('settlements.destroy');
+    Route::post('/settle', [SettlementController::class, 'settledDay'])->name('settlements.settle');
+
+});

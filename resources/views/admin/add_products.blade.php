@@ -1,5 +1,5 @@
 @extends('layouts.admin.admin_layout')
-
+@section('title')  Add Products || Neverland Aquatics  @endsection
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-2">
     <h2>Add Products</h2>

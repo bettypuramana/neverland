@@ -15,12 +15,8 @@ return new class extends Migration
     {
         Schema::create('settlements', function (Blueprint $table) {
             $table->id();
-            $table->date('date');
-            $table->decimal('amount', 10, 2);
-            $table->string('category');
             $table->timestamps();
         });
-
     }
 
     /**
@@ -30,6 +26,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('financial_years');
+        Schema::dropIfExists('settlements');
     }
 };
