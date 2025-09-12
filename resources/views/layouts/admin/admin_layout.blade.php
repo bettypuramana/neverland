@@ -162,6 +162,11 @@
             </a>
           </li>
           <li class="nav-item mb-2">
+            <a href="{{ route('admin.sales.index') }}" class="nav-link">
+              <i class="bi bi-grid-fill"></i> Sales
+            </a>
+          </li>
+          <li class="nav-item mb-2">
             <a href="{{ route('roles.index') }}" class="nav-link">
               <i class="bi bi-person-badge"></i> Roles
             </a>
