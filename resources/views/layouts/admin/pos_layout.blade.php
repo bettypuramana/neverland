@@ -52,11 +52,12 @@
     <header class="navbar navbar-expand navbar-dark bg-dark flex-shrink-0">
         <div class="container-fluid">
             <div class="navbar-nav">
-                <a class="nav-link" href="{{ route('home') }}"><i class="bi bi-arrow-left me-2"></i>Dashboard</a>
+                <a class="nav-link text-white" href="{{ route('home') }}"><i class="bi bi-arrow-left me-2"></i>Dashboard</a>
             </div>
-            <span class="navbar-text small">
+            {{-- <span class="navbar-text small">
                 10-Sep-2025 13:16:33
-            </span>
+            </span> --}}
+            <livewire:current-time />
         </div>
     </header>
 <main class="container-fluid py-3">
