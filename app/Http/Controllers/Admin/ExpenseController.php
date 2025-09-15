@@ -110,7 +110,29 @@ class ExpenseController extends Controller
     ));
 }
 
+public function categoryDaily(Request $request, $id)
+{
+    $selectedFY = $request->get('financial_year_id');
+    $fy = Financial_year::find($selectedFY);
 
+    $selectedMonth = $request->get('month'); // e.g. 2025-09
+
+    $query = Expense::where('category_id', $id)
+        ->where('type', 'expense')
+        ->whereBetween('date', [$fy->start_date, $fy->end_date]);
+
+    if ($selectedMonth) {
+        $query->whereRaw("DATE_FORMAT(date, '%Y-%m') = ?", [$selectedMonth]);
+    }
+
+    $dailyTotals = $query->selectRaw("DATE(date) as day, SUM(amount) as total")
+        ->groupBy('day')
+        ->orderBy('day')
+        ->get();
+
+    return response()->json($dailyTotals);
+}
 
 
 }
+ 
