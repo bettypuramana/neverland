@@ -89,3 +89,6 @@ Route::prefix('settlements')->group(function () {
     Route::post('/settle', [SettlementController::class, 'settledDay'])->name('settlements.settle');
 
 });
+Route::get('/expenses/category/{id}/daily', [ExpenseController::class, 'categoryDaily'])
+    ->name('expenses.category.daily');
+

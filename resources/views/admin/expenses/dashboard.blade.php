@@ -74,7 +74,9 @@
                             @php
                                 $cat = $categories->firstWhere('id', $catId);
                             @endphp
-                            <div class="tile">
+                            <div class="tile category-tile"
+                                data-id="{{ $cat->id }}"
+                                data-name="{{ $cat->name }}">
                                 <i class="fa-solid fa-tag"></i>
                                 <div>
                                     <div class="lbl">{{ $cat ? $cat->name : 'Unknown' }}</div>
@@ -177,6 +179,30 @@
           </tbody>
         </table>
 
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Category Daily Totals Modal -->
+<div class="modal fade" id="categoryListModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Daily Totals - <span id="modalCategoryName"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="categoryDataBody">
+            <tr><td colspan="2" class="text-center">Loading...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -570,5 +596,48 @@ document.getElementById('expenseTableBody').addEventListener('click', function(e
 });
 
     </script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".category-tile").forEach(tile => {
+        tile.addEventListener("click", function () {
+            let categoryId = this.dataset.id;
+            let categoryName = this.dataset.name;
+
+            document.getElementById("modalCategoryName").innerText = categoryName;
+
+            let tbody = document.getElementById("categoryDataBody");
+            tbody.innerHTML = "<tr><td colspan='2' class='text-center'>Loading...</td></tr>";
+
+            // Call backend
+            fetch(`/expenses/category/${categoryId}/daily?financial_year_id={{ $selectedFY }}&month={{ $selectedMonth }}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        tbody.innerHTML = "<tr><td colspan='2' class='text-center'>No data found</td></tr>";
+                        return;
+                    }
+
+                    tbody.innerHTML = "";
+                    data.forEach(row => {
+                        let formattedDate = new Date(row.day).toLocaleDateString('en-US', {
+                            month: 'short',   // "Sep"
+                            day: 'numeric',   // "1"
+                            year: 'numeric'   // "2025"
+                        });
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${formattedDate}</td>
+                                <td>₹${parseFloat(row.total).toFixed(2)}</td>
+                            </tr>`;
+                    });
+                });
+
+            // Show modal
+            new bootstrap.Modal(document.getElementById("categoryListModal")).show();
+        });
+    });
+});
+</script>
 
 @endsection
