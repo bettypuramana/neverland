@@ -56,6 +56,10 @@
                     <label>Sale Price</label>
                     <input type="number" step="0.01" name="sale_price[]" class="form-control">
                 </div>
+                <div class="col-md-2 rent-price"  style="display:none;">
+                    <label>Rent Damage Price</label>
+                    <input type="number" name="rent_damage_price[]" class="form-control" step="0.01">
+                </div>
 
                 <div class="col-md-2">
                     <button type="button" class="btn btn-success add-row">+ Add More</button>
@@ -102,16 +106,31 @@ document.addEventListener("DOMContentLoaded", function() {
             clone.querySelectorAll("input").forEach(input => input.value = "");
             clone.querySelector("select").value = "";
 
+            // Hide Rent Damage Price in new row
+            clone.querySelector(".rent-price").style.display = "none";
+
             // Change Add button → Remove
             let btn = clone.querySelector("button");
             btn.classList.remove("btn-success", "add-row");
             btn.classList.add("btn-danger", "remove-row");
             btn.textContent = "Remove";
 
+            // Add event listener for type select in cloned row
+            clone.querySelector("select[name='type[]']").addEventListener('change', function() {
+                const rentPriceInput = this.closest('.movement-row').querySelector('.rent-price');
+                if(this.value === 'rent') {
+                    rentPriceInput.style.display = 'block';
+                } else {
+                    rentPriceInput.style.display = 'none';
+                    rentPriceInput.querySelector('input').value = '';
+                }
+            });
+
             container.appendChild(clone);
 
             refreshSelectOptions();
         }
+
 
         if (e.target.classList.contains("remove-row")) {
             e.target.closest(".movement-row").remove();
@@ -158,6 +177,20 @@ document.addEventListener("DOMContentLoaded", function() {
         $('#product_suggestions').hide();
     });
 });
+
+document.querySelectorAll('select[name="type[]"]').forEach(select => {
+    select.addEventListener('change', function() {
+        const rentPriceInput = this.closest('.movement-row').querySelector('.rent-price');
+        if(this.value === 'rent') {
+            rentPriceInput.style.display = 'block';
+        } else {
+            rentPriceInput.style.display = 'none';
+            rentPriceInput.querySelector('input').value = '';
+        }
+    });
+});
+
 </script>
+
 
 @endsection

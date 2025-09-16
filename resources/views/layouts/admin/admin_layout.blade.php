@@ -182,7 +182,7 @@
             </a>
           </li>
           <li class="nav-item mb-2">
-            <a  target="_blank"   href="{{ route('settlements.index') }}" class="nav-link">
+            <a href="{{ route('settlements.index') }}" class="nav-link">
               <i class="bi bi-clipboard-check"></i> Settlements
             </a>
           </li>
