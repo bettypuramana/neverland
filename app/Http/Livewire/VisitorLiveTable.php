@@ -56,6 +56,7 @@ class VisitorLiveTable extends Component
     }
     public function render()
     {
+        $this->loadVisitors();
         return view('livewire.visitor-live-table');
     }
 }

@@ -82,6 +82,7 @@ Route::get('/sales', [App\Http\Controllers\Admin\SalesController::class, 'index'
 Route::get('/sale/new', [App\Http\Controllers\Admin\SalesController::class, 'sale_new'])->name('admin.sales.new');
 Route::post('/sale/store', [App\Http\Controllers\Admin\SalesController::class, 'store'])->name('admin.sales.store');
 Route::post('/rent-items-by-main-sale', [App\Http\Controllers\Admin\SalesController::class, 'rent_items_by_main_sale'])->name('admin.rent_items_by_main_sale');
+Route::post('/rent-convert-to-sale', [App\Http\Controllers\Admin\SalesController::class, 'convert_to_sale'])->name('admin.convert_to_sale');
 
 // CustomerController
 Route::get('/customer/search', [App\Http\Controllers\Admin\CustomerController::class, 'search'])->name('customer.search');

@@ -24,7 +24,7 @@ class SalesController extends Controller
     }
     public function sale_new()
     {
-        $products = ProductMovement::get();
+        $products = ProductMovement::where('movement_type','!=','common')->get();
         return view('admin.pos.sale_new',compact('products'));
     }
     public function store(Request $request)
@@ -71,6 +71,7 @@ class SalesController extends Controller
             $sale_main->created_by = $user_id;
             $sale_main->save();
         if($request->item_id){
+            $rent_count=0;
             foreach ($request->item_id as $index => $item_id) {
                 $sale_sub = new Sale_sub;
                 $sale_sub->sale_main_id = $sale_main->id;
@@ -92,6 +93,16 @@ class SalesController extends Controller
                     }
 
                 }
+
+
+                if($request->type[$index]=='rent'){
+                    $rent_count+=1;
+                }
+            }
+            if($rent_count>0){
+                $visitor = Sale_main::find($sale_main->id);
+                $visitor->item_return_status = 0;
+                $visitor->save();
             }
         }
         return response()->json([
@@ -111,8 +122,62 @@ class SalesController extends Controller
     {
         $id=$request->input('id');
 
-        $rentitems=Sale_sub::where('item_type','rent')->join('products', 'products.id', '=', 'sale_subs.item_id')->where('sale_main_id',$id)->select('name','quantity')->get();
+        $rentitems=Sale_sub::where('item_type','rent')->join('products', 'products.id', '=', 'sale_subs.item_id')->join('product_movements', 'product_movements.id', '=', 'sale_subs.movement_id')->where('sale_main_id',$id)->select('products.name','sale_subs.quantity','sale_subs.id as sub_id','sale_subs.item_id','sale_subs.movement_id','product_movements.sale_price','product_movements.sale_rent_price')->get();
 
         echo json_encode($rentitems);
+    }
+    public function convert_to_sale(Request $request)
+    {
+        try {
+        $user_id = Auth::id();
+            $request->id;
+            $request->convert_quantity;
+            $request->item_id;
+            $request->sale_price;
+            $request->sale_rent_price;
+
+            $ProductMovement = ProductMovement::find($request->movement_id);
+
+            if ($ProductMovement) {
+                $ProductMovement->quantity -= $request->convert_quantity;
+                $ProductMovement->save();
+            }
+            $salesub = Sale_sub::find($request->sub_id);
+            if ($salesub) {
+                $salesub->quantity -= $request->convert_quantity;
+                if ($salesub->quantity <= 0) {
+                    $salesub->delete();
+                } else {
+                    $salesub->save();
+                }
+            }
+            $newsaleSub = new Sale_sub;
+            $newsaleSub->sale_main_id = $request->id;
+            $newsaleSub->item_id      = $request->item_id;
+            $newsaleSub->movement_id  = $request->movement_id;
+            $newsaleSub->item_type    = 'sale';
+            $newsaleSub->quantity     = $request->convert_quantity;
+            $newsaleSub->item_price   = $request->sale_rent_price; // or $request->sale_rent_price if needed
+            $newsaleSub->created_by   = $user_id;
+            $newsaleSub->save();
+
+            $salemain = Sale_main::find($request->id);
+            if ($salemain) {
+                $salemain->total_amount -= ($request->sale_price * $request->convert_quantity);
+                $salemain->total_amount += ($request->sale_rent_price * $request->convert_quantity);
+            $salemain->save();
+            }
+        return response()->json([
+            'status'      => true,
+            'message'     => 'Updated successfully',
+        ]);
+        } catch (\Exception $e) {
+        return response()->json([
+            'status'  => false,
+            'message' => 'Something went wrong: ' . $e->getMessage(),
+        ], 500);
+    }
+
+
     }
 }
