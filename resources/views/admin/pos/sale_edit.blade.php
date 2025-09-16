@@ -13,11 +13,10 @@ Visitor Entry - Neverland
                         <form id="saleForm">
                             @csrf
                             <input type="hidden" name="hour_charge" id="hourCharge" value="{{ env('HOUR_CHARGE') }}">
-                            <input type="hidden" name="half_hour_charge" id="halfHourCharge" value="{{ env('HALF_HOUR_CHARGE') }}">
                             <div class="row mb-2">
                                 <div class="col-3">
-                                    <label for="">Contact Number</label>
-                                    <input type="number" class="form-control" placeholder="Contact Number" name="phone"
+                                    <label for="">Contact</label>
+                                    <input type="number" class="form-control" placeholder="Contact" name="phone"
                                         id="phone" autocomplete="off">
                                         <ul id="contactList" class="list-group" style="position: absolute; z-index: 999;"></ul>
                                     <p class="text-danger" id="contactError"></p>
@@ -95,11 +94,9 @@ Visitor Entry - Neverland
                                     <label for="">Hours</label>
                                     <select name="hours" id="hours" onchange="setEndtime();getTotalPrice();"
                                         class="form-control">
-                                        <option value="60">1 hr</option>
-                                        <option value="90">1:30 hr</option>
-                                        <option value="120">2 hr</option>
-                                        <option value="150">2:30 hr</option>
-                                        <option value="180">3 hr</option>
+                                        <option value="1">1 hr</option>
+                                        <option value="1:30">1:30 hr</option>
+                                        <option value="2">2 hr</option>
                                     </select>
                                     <p class="text-danger" id="hoursError"></p>
                                 </div>
@@ -294,20 +291,30 @@ Visitor Entry - Neverland
             const hoursSelect = document.getElementById("hours");
             const endTimeInput = document.getElementById("endTime");
 
-            if (!inTimeInput.value || !hoursSelect.value) return;
+            if (!inTimeInput.value) return;
 
-            // Parse input time
+            // Parse in_time
             let [inHours, inMinutes] = inTimeInput.value.split(":").map(Number);
 
-            // Get duration in minutes
-            let durationMinutes = parseInt(hoursSelect.value);
+            // Parse hours select
+            let selected = hoursSelect.value; // e.g., "1" or "1:30"
+            let addHours = 0,
+                addMinutes = 0;
 
-            // Create Date object for calculation
+            if (selected.includes(":")) {
+                const parts = selected.split(":");
+                addHours = parseInt(parts[0]);
+                addMinutes = parseInt(parts[1]);
+            } else {
+                addHours = parseInt(selected);
+            }
+
+            // Calculate end time
             let endDate = new Date();
-            endDate.setHours(inHours);
-            endDate.setMinutes(inMinutes + durationMinutes);
+            endDate.setHours(inHours + addHours);
+            endDate.setMinutes(inMinutes + addMinutes);
 
-            // Format HH:MM
+            // Format as HH:MM
             const hh = String(endDate.getHours()).padStart(2, "0");
             const mm = String(endDate.getMinutes()).padStart(2, "0");
 
@@ -400,13 +407,17 @@ Visitor Entry - Neverland
             let membersCount = parseFloat(document.getElementById("membersCount")?.value) || 0;
             let hoursValue = document.getElementById("hours")?.value || "0";
             let hourCharge = parseFloat(document.getElementById("hourCharge")?.value) || 0;
-            let halfHourCharge = parseFloat(document.getElementById("halfHourCharge")?.value) || 0;
 
-            let onePersonCharge = 0;
-            let fullHours = Math.floor(hoursValue / 60);
-            let remainingMinutes = hoursValue % 60;
-            onePersonCharge = (fullHours * hourCharge) + (remainingMinutes >= 30 ? halfHourCharge : 0);
-            let total = membersCount * onePersonCharge;
+            let hours = 0;
+            if (hoursValue.includes(":")) {
+                // Handle "H:MM" format
+                const [h, m] = hoursValue.split(":").map(Number);
+                hours = h + (m / 60);
+            } else {
+                hours = parseFloat(hoursValue) || 0;
+            }
+
+            let total = membersCount * hours * hourCharge;
 
             // Add up cart items (quantity[] * itemprice[])
             const quantities = document.querySelectorAll('input[name="quantity[]"]');
