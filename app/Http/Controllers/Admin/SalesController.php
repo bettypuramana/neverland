@@ -81,6 +81,17 @@ class SalesController extends Controller
                 $sale_sub->item_price = $request->itemprice[$index];
                 $sale_sub->created_by = $user_id;
                 $sale_sub->save();
+
+                if($request->type[$index]=='sale'){
+                    $qty = $request->quantity[$index];
+                    $ProductMovement = ProductMovement::find($request->movement_id[$index]);
+
+                    if ($ProductMovement) {
+                        $ProductMovement->quantity -= $qty;
+                        $ProductMovement->save();
+                    }
+
+                }
             }
         }
         return response()->json([

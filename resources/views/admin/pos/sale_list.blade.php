@@ -20,6 +20,7 @@ Visitor List - Neverland
                                         <th rowspan="2" class="text-center">Out Time</th>
                                         <th rowspan="2" class="text-center">Price</th>
                                         <th colspan="3" class="text-center">Floaty</th>
+                                        <th rowspan="2" class="text-center">Balance</th>
                                         <th rowspan="2" class="text-center">Payment</th>
                                         <th rowspan="2" class="text-center">Rent</th>
                                     </tr>
