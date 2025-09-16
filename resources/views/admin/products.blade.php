@@ -94,7 +94,10 @@
                             <label>Sale Price</label>
                             <input type="number" step="0.01" name="sale_price[]" class="form-control">
                         </div>
-
+                        <div class="col-md-2 rent-damage-price" style="display:none;">
+                            <label>Rent Damage Price</label>
+                            <input type="number" step="0.01" name="rent_damage_price[]" class="form-control">
+                        </div>
                         <div class="col-md-2">
                             <!-- First row only has Add button -->
                             <button type="button" class="btn btn-success add-row">+ Add More</button>
@@ -113,6 +116,8 @@
 </div>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    const movementContainer = document.getElementById("movement-container");
+
     // Pass product_id to modal hidden input
     document.querySelectorAll(".add-movement-btn").forEach(btn => {
         btn.addEventListener("click", function () {
@@ -121,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // Function to refresh available options in all selects
+    // Function to refresh selects availability
     function refreshSelectOptions() {
         let selectedValues = Array.from(document.querySelectorAll("select[name='type[]']"))
             .map(select => select.value)
@@ -138,22 +143,36 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Add / Remove rows
+    // Function to toggle Rent Damage Price visibility
+    function toggleRentDamagePrice(select) {
+        const row = select.closest(".movement-row");
+        const rentCol = row.querySelector(".rent-damage-price");
+        if (select.value === "rent") {
+            rentCol.style.display = "block";
+        } else {
+            rentCol.style.display = "none";
+            rentCol.querySelector("input").value = "";
+        }
+    }
+
+    // Add / Remove rows dynamically
     document.addEventListener("click", function (e) {
         if (e.target.classList.contains("add-row")) {
-            let container = document.getElementById("movement-container");
             let firstRow = document.querySelector(".movement-row");
             let newRow = firstRow.cloneNode(true);
 
-            // Clear inputs & reset select
+            // Clear all inputs
             newRow.querySelectorAll("input").forEach(input => input.value = "");
             newRow.querySelector("select").value = "";
+
+            // Hide Rent Damage Price in cloned row
+            newRow.querySelector(".rent-damage-price").style.display = "none";
 
             // Replace Add button with Remove button
             let btnCol = newRow.querySelector(".col-md-2:last-child");
             btnCol.innerHTML = `<button type="button" class="btn btn-danger remove-row">Remove</button>`;
 
-            container.appendChild(newRow);
+            movementContainer.appendChild(newRow);
 
             refreshSelectOptions();
         }
@@ -164,13 +183,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Watch for select changes to update availability
+    // Watch for type select changes
     document.addEventListener("change", function (e) {
         if (e.target.name === "type[]") {
+            toggleRentDamagePrice(e.target);
             refreshSelectOptions();
         }
     });
 });
+
 </script>
 
 

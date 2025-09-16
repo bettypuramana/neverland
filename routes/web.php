@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ExpenseController;
 use App\Http\Controllers\Admin\SettlementController;
+use App\Http\Controllers\User\VisitorController;
 
 
 /*
@@ -101,3 +102,8 @@ Route::prefix('settlements')->group(function () {
 Route::get('/expenses/category/{id}/daily', [ExpenseController::class, 'categoryDaily'])
     ->name('expenses.category.daily');
 
+Route::get('/visitor/form', [VisitorController::class, 'create'])->name('visitor.form');
+Route::post('/visitor/store', [VisitorController::class, 'store'])->name('visitor.store');
+
+// Route to show QR code
+Route::get('/visitor/qr', [VisitorController::class, 'qr'])->name('visitor.qr');
