@@ -58,11 +58,15 @@ Visitor List - Neverland
 
       <div class="modal-body">
         <div class="table-responsive">
+            <p id="updateSuccess" class="text-success"></p>
+            <p id="updateError" class="text-danger"></p>
           <table class="table table-striped table-bordered align-middle">
             <thead class="table-dark">
               <tr>
                 <th scope="col">Item</th>
                 <th scope="col">Quantity</th>
+                <th scope="col">Sale Price ( 1 Pcs )</th>
+                <th scope="col">Convert To Sale</th>
               </tr>
             </thead>
             <tbody id="rentItems">
@@ -96,6 +100,8 @@ event.preventDefault();
                                     html += `<tr>
                                         <td>${item.name}</td>
                                         <td>${item.quantity}</td>
+                                        <td>${item.sale_rent_price}</td>
+                                        <td><input type="number" class="form-control form-control-sm w-50 d-inline" placeholder="Quantity" name="convert_quantity_${item.sub_id}" id="convertQuantity_${item.sub_id}" max="${item.quantity}" min="1" > &nbsp;&nbsp;&nbsp;&nbsp;<a href="#" onclick="convertToSale(${id},${item.sub_id},${item.item_id},${item.movement_id},${item.sale_price},${item.sale_rent_price},)"><i class="bi bi-arrow-repeat"></i></a><p id="convertQuantityError_${item.sub_id}" class="text-danger convert-quantity"></p></td>
                                     </tr>`;
                                 });
                             }
@@ -107,5 +113,43 @@ event.preventDefault();
                         }
                 });
             }
+
+function convertToSale(id,sub_id,item_id,movement_id,sale_price,sale_rent_price){
+
+    event.preventDefault();
+    let convert_quantity = document.getElementById("convertQuantity_"+sub_id).value;
+
+    $('.convert-quantity').text('');
+
+    if(convert_quantity==''){
+        document.getElementById("convertQuantityError_"+sub_id).textContent='Please enter the quantity';
+    }else{
+        $.ajax({
+                url: "{{route('admin.convert_to_sale')}}",
+                type: "POST",
+                data: {
+                        "_token": "{{ csrf_token() }}",
+                        id: id,sub_id: sub_id,item_id: item_id,movement_id: movement_id,sale_price: sale_price,sale_rent_price: sale_rent_price,convert_quantity: convert_quantity,
+                    },
+                    dataType: 'json',
+                    success: function(res)
+                        {
+                            if (res.status) {
+                                document.getElementById("convertQuantity_"+sub_id).value='';
+                                document.getElementById("updateSuccess").textContent = res.message;
+                                getRentItems(id);
+                            } else {
+                                document.getElementById("updateError").textContent = "Something went wrong. Try again";
+                            }
+                        },
+                        error: function(e)
+                        {
+                        //    loader_off();
+                        }
+                });
+    }
+
+
+}
 </script>
 @endsection
