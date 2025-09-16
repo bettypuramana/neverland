@@ -61,6 +61,7 @@ class ProductController extends Controller
         'quantity.*'     => 'required|integer|min:1',
         'buy_price.*'    => 'required|numeric|min:0',
         'sale_price.*'   => 'nullable|numeric|min:0',
+        'rent_damage_price.*' => 'nullable|numeric|min:0', // new
     ]);
 
     // 🔹 Check if product already exists by name
@@ -90,6 +91,7 @@ class ProductController extends Controller
         $ProductMovement->movement_type = $type;
         $ProductMovement->buy_price = $request->buy_price[$index];
         $ProductMovement->sale_price = $request->sale_price[$index] ?? null;
+        $ProductMovement->rent_damage_price = $type === 'rent' ? ($request->rent_damage_price[$index] ?? 0) : null;
         $ProductMovement->quantity = $request->quantity[$index];
         $ProductMovement->created_by = $user_id;
         $ProductMovement->save();
@@ -120,6 +122,7 @@ class ProductController extends Controller
             'quantity.*'     => 'required|integer|min:1',
             'buy_price.*'    => 'required|numeric|min:0',
             'sale_price.*'   => 'nullable|numeric|min:0',
+            'rent_damage_price.*' => 'nullable|numeric|min:0', // new
         ]);
 
         // ✅ Insert into product_movements for each row
@@ -131,6 +134,7 @@ class ProductController extends Controller
             $movement->quantity       = $request->quantity[$index];
             $movement->buy_price      = $request->buy_price[$index];
             $movement->sale_price     = $request->sale_price[$index] ?? null;
+            $movement->rent_damage_price = $type === 'rent' ? ($request->rent_damage_price[$index] ?? 0) : null;
             $movement->created_by     = $user_id;
             $movement->save();
         }

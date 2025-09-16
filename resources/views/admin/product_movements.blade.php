@@ -24,6 +24,7 @@
                 <th>Quantity</th>
                 <th>Buy Price</th>
                 <th>Sale Price</th>
+                <th>Rent Damage Price</th>
             </tr>
         </thead>
         <tbody>
@@ -34,6 +35,7 @@
                 <td>{{ $move->quantity }}</td>
                 <td>{{ $move->buy_price }}</td>
                 <td>{{ $move->sale_price }}</td>
+                <td>{{ $move->rent_damage_price ?? '-' }}</td>
             </tr>
         @endforeach
         </tbody>
