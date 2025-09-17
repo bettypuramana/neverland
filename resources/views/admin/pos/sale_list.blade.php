@@ -75,7 +75,9 @@ Visitor List - Neverland
           </table>
         </div>
       </div>
+      <div class="modal-footer" id="returnedButton">
 
+      </div>
     </div>
   </div>
 </div>
@@ -106,6 +108,8 @@ event.preventDefault();
                                 });
                             }
                             $("#rentItems").html(html);
+                            let html2 = `<button type="button" class="btn btn-warning" onclick="confirmReturned(${id})">Confirm Returned</button>`;
+                            document.getElementById('returnedButton').innerHTML = html2;
                         },
                         error: function(e)
                         {
@@ -150,6 +154,31 @@ function convertToSale(id,sub_id,item_id,movement_id,sale_price,sale_rent_price)
     }
 
 
+}
+function confirmReturned(id){
+    event.preventDefault();
+        $.ajax({
+                url: "{{route('admin.confirm_return')}}",
+                type: "POST",
+                data: {
+                        "_token": "{{ csrf_token() }}",
+                        id: id,
+                    },
+                    dataType: 'json',
+                    success: function(res)
+                        {
+                            if (res.status) {
+                                alert(res.message);
+                                window.location.reload();
+                            }else{
+                                alert(res.message);
+                            }
+                        },
+                        error: function(e)
+                        {
+                        //    loader_off();
+                        }
+                });
 }
 </script>
 @endsection
