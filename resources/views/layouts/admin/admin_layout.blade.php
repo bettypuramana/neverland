@@ -149,6 +149,8 @@
         justify-content: space-between;
       }
     </style>
+        @stack('styles')
+
 </head>
 <body>
     <!-- Sidebar -->
