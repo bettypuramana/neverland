@@ -180,4 +180,137 @@ class SalesController extends Controller
 
 
     }
+    public function confirm_return(Request $request)
+    {
+        try {
+            $user_id = Auth::id();
+
+            $salemain = Sale_main::find($request->id);
+            if ($salemain) {
+                $salemain->item_return_status = 1;
+                $salemain->save();
+            }
+            return response()->json([
+                'status'      => true,
+                'message'     => 'Retrun updated successfully',
+            ]);
+            } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Something went wrong: ' . $e->getMessage(),
+            ], 500);
+    }
+
+
+    }
+    public function edit($id)
+    {
+        $products = ProductMovement::where('movement_type','!=','common')->get();
+        $mainsale=Sale_main::where('id',$id)->first();
+        return view('admin.pos.sale_edit',compact('mainsale','products'));
+    }
+    public function update(Request $request, $id)
+    {
+        try {
+        $user_id = Auth::id();
+
+            $floaty_status=0;
+            $floaty_count=0;
+            $floaty_advance=0;
+            if($request->floaty_count!='' && $request->floaty_count>0){
+                $floaty_status=1;
+                $floaty_count=$request->floaty_count;
+                $floaty_advance=$request->floaty_advance;
+            }
+            $paid_amount=0;
+            if($request->payment_method){
+                $paid_amount=$request->total_amount;
+            }
+            $sale_main = Sale_main::find($id);
+            $sale_main->count = $request->members_count;
+            $sale_main->in_time = $request->in_time;
+            $sale_main->hours = $request->hours;
+            $sale_main->end_time = $request->end_time;
+            $sale_main->floaty_number = $floaty_count;
+            $sale_main->floaty_advance = $floaty_advance;
+            $sale_main->floaty_status = $floaty_status;
+            $sale_main->date = $request->booking_date;
+            $sale_main->total_amount = $request->total_amount;
+            $sale_main->paid_amount = $paid_amount;
+            $sale_main->payment_method = $request->payment_method;
+            $sale_main->created_by = $user_id;
+            $sale_main->save();
+
+            $oldsubids=Sale_sub::where('sale_main_id', $id)->pluck('id')->toArray();
+            $newsubids=$request->sub_id ?? [];
+            $subIdToDelete = array_diff($oldsubids, array_filter($newsubids));
+            if (!empty($subIdToDelete)) {
+                $subsToDelete = Sale_sub::whereIn('id', $subIdToDelete)->get();
+
+                foreach ($subsToDelete as $sub) {
+                    // If deleted item was a sale, return qty back to stock
+                    if ($sub->item_type == 'sale') {
+                        $ProductMovement = ProductMovement::find($sub->movement_id);
+                        if ($ProductMovement) {
+                            $ProductMovement->quantity += $sub->quantity; // restore stock
+                            $ProductMovement->save();
+                        }
+                    }
+                }
+
+                Sale_sub::whereIn('id', $subIdToDelete)->delete();
+            }
+        if($request->item_id){
+            $rent_count=0;
+            foreach ($request->item_id as $index => $item_id) {
+
+                $sub_id = $request->sub_id[$index] ?? null;
+                if ($sub_id) {
+                    $sale_sub = Sale_sub::find($sub_id);
+                } else {
+                    $sale_sub = new Sale_sub();
+                    $sale_sub->sale_main_id = $id;
+                    $sale_sub->created_by = $user_id;
+                }
+                $sale_sub->item_id = $item_id;
+                $sale_sub->movement_id = $request->movement_id[$index];
+                $sale_sub->item_type = $request->type[$index];
+                $sale_sub->quantity = $request->quantity[$index] ?? null;
+                $sale_sub->item_price = $request->itemprice[$index];
+                $sale_sub->created_by = $user_id;
+                $sale_sub->save();
+
+                if($request->type[$index]=='sale'){
+                    $qty = $request->quantity[$index];
+                    $ProductMovement = ProductMovement::find($request->movement_id[$index]);
+
+                    if ($ProductMovement) {
+                        $ProductMovement->quantity -= $qty;
+                        $ProductMovement->save();
+                    }
+
+                }
+
+
+                if($request->type[$index]=='rent'){
+                    $rent_count+=1;
+                }
+            }
+            if($rent_count>0){
+                $visitor = Sale_main::find($sale_main->id);
+                $visitor->item_return_status = 0;
+                $visitor->save();
+            }
+        }
+        return response()->json([
+            'status'      => true,
+            'message'     => 'saved successfully',
+        ]);
+        } catch (\Exception $e) {
+        return response()->json([
+            'status'  => false,
+            'message' => 'Something went wrong: ' . $e->getMessage(),
+        ], 500);
+        }
+    }
 }

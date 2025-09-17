@@ -84,7 +84,13 @@ Route::get('/sale/new', [App\Http\Controllers\Admin\SalesController::class, 'sal
 Route::post('/sale/store', [App\Http\Controllers\Admin\SalesController::class, 'store'])->name('admin.sales.store');
 Route::post('/rent-items-by-main-sale', [App\Http\Controllers\Admin\SalesController::class, 'rent_items_by_main_sale'])->name('admin.rent_items_by_main_sale');
 Route::post('/rent-convert-to-sale', [App\Http\Controllers\Admin\SalesController::class, 'convert_to_sale'])->name('admin.convert_to_sale');
+Route::post('/confirm-return', [App\Http\Controllers\Admin\SalesController::class, 'confirm_return'])->name('admin.confirm_return');
+Route::get('/sale/edit/{id}', [App\Http\Controllers\Admin\SalesController::class, 'edit'])->name('admin.sale_edit');
+Route::post('/sale/update/{id}', [App\Http\Controllers\Admin\SalesController::class, 'update'])->name('admin.sale.update');
 
+// VisitorController
+Route::get('/visitor/form', [VisitorController::class, 'create'])->name('visitor.form');
+Route::post('/visitor/store', [VisitorController::class, 'store'])->name('visitor.store');
 // CustomerController
 Route::get('/customer/search', [App\Http\Controllers\Admin\CustomerController::class, 'search'])->name('customer.search');
 
@@ -103,8 +109,7 @@ Route::prefix('settlements')->group(function () {
 Route::get('/expenses/category/{id}/daily', [ExpenseController::class, 'categoryDaily'])
     ->name('expenses.category.daily');
 
-Route::get('/visitor/form', [VisitorController::class, 'create'])->name('visitor.form');
-Route::post('/visitor/store', [VisitorController::class, 'store'])->name('visitor.store');
+
 
 // Route to show QR code
 Route::get('/visitor/qr', [VisitorController::class, 'qr'])->name('visitor.qr');

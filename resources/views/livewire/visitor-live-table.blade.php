@@ -28,7 +28,7 @@
                         @else
 
                             @if ($visitor->total_amount > $visitor->paid_amount)
-                                <a href="#" @if ($visitor->rent_item_count > 0) onclick="if(confirm('Before exit confirm all rent items are returned ?')) { @this.exitWithPayment({{ $visitor->id }}, 'Cash', {{ $visitor->total_amount }}) }" @else wire:click="exitWithPayment({{ $visitor->id }},'Cash',{{$visitor->total_amount}})" @endif class="btn btn-success btn-sm">Cash</a>&nbsp;&nbsp;&nbsp;
+                                <a href="#" wire:click="exitWithPayment({{ $visitor->id }},'Cash',{{$visitor->total_amount}})" class="btn btn-success btn-sm">Cash</a>&nbsp;&nbsp;&nbsp;
                                 <a href="#" wire:click="exitWithPayment({{ $visitor->id }},'G pay',{{$visitor->total_amount}})" class="btn btn-success btn-sm">G pay</a>
                             @else
                                 <a href="#" wire:click="markExit({{ $visitor->id }})" class="btn btn-danger px-5 btn-sm">Exit</a>&nbsp;&nbsp;
@@ -36,10 +36,10 @@
 
                         @endif
 
-                        <a href="" class="btn btn-danger btn-sm">Edit</a>&nbsp;&nbsp;
+                        <a href="{{ route('admin.sale_edit', ['id' => $visitor->id]) }}" class="btn btn-danger btn-sm">Edit</a>&nbsp;&nbsp;
                     </td>
                     <td class="text-center">
-                        @if ($visitor->rent_item_count > 0)
+                        @if ($visitor->rent_item_count > 0 && $visitor->item_return_status==0)
                             <a href="#" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="getRentItems({{$visitor->id}});"><span class="badge text-bg-warning">Pending {{ $visitor->rent_item_count }}</span></a>
                         @else
                             <span class="badge text-bg-primary">N/A</span>

@@ -13,31 +13,32 @@ Visitor Entry - Neverland
                         <form id="saleForm">
                             @csrf
                             <input type="hidden" name="hour_charge" id="hourCharge" value="{{ env('HOUR_CHARGE') }}">
+                            <input type="hidden" name="half_hour_charge" id="halfHourCharge" value="{{ env('HALF_HOUR_CHARGE') }}">
                             <div class="row mb-2">
                                 <div class="col-3">
-                                    <label for="">Contact</label>
-                                    <input type="number" class="form-control" placeholder="Contact" name="phone"
-                                        id="phone" autocomplete="off">
+                                    <label for="">Contact Number</label>
+                                    <input type="number" class="form-control" placeholder="Contact Number" name="phone"
+                                        id="phone" autocomplete="off" value="{{$mainsale->getCustomer->contact}}" readonly>
                                         <ul id="contactList" class="list-group" style="position: absolute; z-index: 999;"></ul>
                                     <p class="text-danger" id="contactError"></p>
                                 </div>
                                 <div class="col-3">
                                     <label for="">Name</label>
                                     <input type="text" class="form-control" placeholder="Name" id="name"
-                                        name="name">
+                                        name="name" value="{{$mainsale->getCustomer->name}}" readonly>
                                     <p class="text-danger" id="nameError"></p>
                                 </div>
                                 <div class="col-3">
                                     <label for="">Location</label>
                                     <input type="text" class="form-control" placeholder="Location" name="location"
-                                        id="location">
+                                        id="location" value="{{$mainsale->getCustomer->location}}" readonly>
                                     <p class="text-danger" id="locationError"></p>
                                 </div>
 
                                 <div class="col-3">
                                     <label for="">Emergency Contact</label>
                                     <input type="number" class="form-control" name="emergency_contact"
-                                        id="emergencyContact" placeholder="Emergency Contact">
+                                        id="emergencyContact" placeholder="Emergency Contact" value="{{$mainsale->getCustomer->emergency_contact}}" readonly>
                                 </div>
                             </div>
 
@@ -56,7 +57,33 @@ Visitor Entry - Neverland
                                         </tr>
                                     </thead>
                                     <tbody>
-
+                                        @if (!empty($mainsale->allItems))
+                                            @foreach ($mainsale->allItems as $row)
+                                                <tr>
+                                                    <td>{{$row->getProduct->name}}</td>
+                                                    <td>{{$row->item_type}}
+                                                        <input type="hidden" name="sub_id[]" value="{{$row->id}}">
+                                                        <input type="hidden" name="item_id[]" value="{{$row->item_id}}">
+                                                        <input type="hidden" name="movement_id[]" value="{{$row->movement_id}}">
+                                                        <input type="hidden" name="type[]" value="{{$row->item_type}}">
+                                                        <input type="hidden" name="itemprice[]" value="{{$row->item_price}}">
+                                                    </td>
+                                                    <td>
+                                                        <div class="input-group input-group-sm" style="width: 120px;">
+                                                            <button class="btn btn-outline-secondary" onclick="updateQty(this, -1)">-</button>
+                                                            <input type="text" class="form-control text-center" name="quantity[]" value="{{$row->quantity}}">
+                                                            <button class="btn btn-outline-secondary" onclick="updateQty(this, 1)">+</button>
+                                                        </div>
+                                                    </td>
+                                                    <td >{{$row->item_price * $row->quantity}}</td>
+                                                    <td >
+                                                        <button class="btn btn-sm btn-outline-danger" onclick="removeItem(this)">
+                                                            <i class="bi bi-x"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        @endif
                                     </tbody>
                                 </table>
                             </div>
@@ -68,11 +95,11 @@ Visitor Entry - Neverland
                                 </div>
                                 <div class="col-2">
                                     <label for="">Number</label>
-                                    <input type="number" class="form-control" placeholder="Number" name="floaty_count">
+                                    <input type="number" class="form-control" placeholder="Number" name="floaty_count" value="{{$mainsale->floaty_number}}">
                                 </div>
                                 <div class="col-2">
                                     <label for="">Advance</label>
-                                    <input type="number" class="form-control" placeholder="Advance" name="floaty_advance">
+                                    <input type="number" class="form-control" placeholder="Advance" name="floaty_advance" value="{{$mainsale->floaty_advance}}">
                                 </div>
 
                             </div>
@@ -81,28 +108,30 @@ Visitor Entry - Neverland
                                 <div class="col-3">
                                     <label for="">No of Persons</label>
                                     <input type="number" class="form-control" name="members_count" id="membersCount"
-                                        placeholder="No of Persons" onchange="getTotalPrice()">
+                                        placeholder="No of Persons" onchange="getTotalPrice()" value="{{$mainsale->count}}">
                                     <p class="text-danger" id="membersCountError"></p>
                                 </div>
                                 <div class="col-3">
                                     <label for="">In Time</label>
                                     <input type="time" class="form-control" name="in_time" id="inTime"
-                                        onchange="setEndtime();">
+                                        onchange="setEndtime();" value="{{$mainsale->in_time}}">
                                     <p class="text-danger" id="inTimeCountError"></p>
                                 </div>
                                 <div class="col-3">
                                     <label for="">Hours</label>
                                     <select name="hours" id="hours" onchange="setEndtime();getTotalPrice();"
                                         class="form-control">
-                                        <option value="1">1 hr</option>
-                                        <option value="1:30">1:30 hr</option>
-                                        <option value="2">2 hr</option>
+                                        <option value="60" {{ $mainsale->hours == 60 ? 'selected' : '' }}>1 hr</option>
+                                        <option value="90" {{ $mainsale->hours == 90 ? 'selected' : '' }}>1:30 hr</option>
+                                        <option value="120" {{ $mainsale->hours == 120 ? 'selected' : '' }}>2 hr</option>
+                                        <option value="150" {{ $mainsale->hours == 150 ? 'selected' : '' }}>2:30 hr</option>
+                                        <option value="180" {{ $mainsale->hours == 180 ? 'selected' : '' }}>3 hr</option>
                                     </select>
                                     <p class="text-danger" id="hoursError"></p>
                                 </div>
                                 <div class="col-3">
                                     <label for="">End Time</label>
-                                    <input type="time" class="form-control" name="end_time" id="endTime" readonly>
+                                    <input type="time" class="form-control" name="end_time" id="endTime" value="{{$mainsale->end_time}}" readonly>
                                 </div>
 
 
@@ -169,20 +198,19 @@ Visitor Entry - Neverland
 
 
                     <hr>
-                    <p class="text-success" id="insertSuccess"></p>
-                    <p class="text-danger" id="insertError"></p>
+                    <p class="text-danger" id="updateError"></p>
                     <div class="form-group row">
                         <label for="staticEmail" class="col-sm-6 col-form-label">Date</label>
                         <div class="col-sm-6">
                             <input type="date" class="form-control-plaintext" name="booking_date"
-                                value="{{ date('Y-m-d') }}" readonly>
+                                value="{{$mainsale->date}}" readonly>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="staticEmail" class="col-sm-6 col-form-label">Total Amount</label>
                         <div class="col-sm-6">
                             <input type="text" class="form-control-plaintext" name="total_amount" id="totalAmount"
-                                placeholder="0.00" readonly>
+                                placeholder="0.00" readonly value="{{$mainsale->total_amount}}">
                         </div>
                     </div>
 
@@ -191,12 +219,12 @@ Visitor Entry - Neverland
                         <div class="col-sm-6 d-flex">
                             <div>
                                 <input type="radio" name="payment_method" value="G pay" class="form-check-input"
-                                    placeholder="0.00" readonly>
+                                    placeholder="0.00" readonly {{ $mainsale->payment_method == 'G pay' ? 'checked' : '' }}>
                                 <label for="">G pay</label>
                             </div>
                             <div>
                                 <input type="radio" name="payment_method" value="Cash" class="form-check-input"
-                                    placeholder="0.00" readonly>
+                                    placeholder="0.00" readonly {{ $mainsale->payment_method == 'Cash' ? 'checked' : '' }}>
                                 <label for="">Cash</label>
                             </div>
 
@@ -206,7 +234,7 @@ Visitor Entry - Neverland
 
 
                     <div class="d-grid">
-                        <button class="btn btn-danger btn-lg text-uppercase py-3" onclick="insertSale()">Confirm</button>
+                        <button class="btn btn-danger btn-lg text-uppercase py-3" onclick="updateSale({{ $mainsale->id}})">Update</button>
                     </div>
 
                 </div>
@@ -291,37 +319,27 @@ Visitor Entry - Neverland
             const hoursSelect = document.getElementById("hours");
             const endTimeInput = document.getElementById("endTime");
 
-            if (!inTimeInput.value) return;
+            if (!inTimeInput.value || !hoursSelect.value) return;
 
-            // Parse in_time
+            // Parse input time
             let [inHours, inMinutes] = inTimeInput.value.split(":").map(Number);
 
-            // Parse hours select
-            let selected = hoursSelect.value; // e.g., "1" or "1:30"
-            let addHours = 0,
-                addMinutes = 0;
+            // Get duration in minutes
+            let durationMinutes = parseInt(hoursSelect.value);
 
-            if (selected.includes(":")) {
-                const parts = selected.split(":");
-                addHours = parseInt(parts[0]);
-                addMinutes = parseInt(parts[1]);
-            } else {
-                addHours = parseInt(selected);
-            }
-
-            // Calculate end time
+            // Create Date object for calculation
             let endDate = new Date();
-            endDate.setHours(inHours + addHours);
-            endDate.setMinutes(inMinutes + addMinutes);
+            endDate.setHours(inHours);
+            endDate.setMinutes(inMinutes + durationMinutes);
 
-            // Format as HH:MM
+            // Format HH:MM
             const hh = String(endDate.getHours()).padStart(2, "0");
             const mm = String(endDate.getMinutes()).padStart(2, "0");
 
             endTimeInput.value = `${hh}:${mm}`;
         }
 
-        function insertSale() {
+        function updateSale(id) {
             let form = document.getElementById("saleForm");
             let formData = new FormData(form);
 
@@ -376,23 +394,16 @@ Visitor Entry - Neverland
             });
 
             $.ajax({
-                url: "{{ route('admin.sales.store') }}",
+                url: "{{ route('admin.sale.update', ':id') }}".replace(':id', id),
                 method: "POST",
                 data: formData,
                 processData: false,
                 contentType: false,
                 success: function(response) {
                     if (response.status) {
-
-                        document.getElementById("insertSuccess").textContent = response.message;
-                        document.querySelector("input[name='total_amount']").value = "";
-                        document.querySelectorAll("input[name='payment_method']").forEach(el => el.checked =
-                            false);
-                        // reset form
-                        form.reset();
-                        $("#cartTable tbody").empty();
+                        window.location.href = "{{ route('admin.sales.index') }}";
                     } else {
-                        document.getElementById("insertError").textContent = "Something went wrong. Try again";
+                        document.getElementById("updateError").textContent = "Something went wrong. Try again";
                     }
                 },
 
@@ -407,17 +418,13 @@ Visitor Entry - Neverland
             let membersCount = parseFloat(document.getElementById("membersCount")?.value) || 0;
             let hoursValue = document.getElementById("hours")?.value || "0";
             let hourCharge = parseFloat(document.getElementById("hourCharge")?.value) || 0;
+            let halfHourCharge = parseFloat(document.getElementById("halfHourCharge")?.value) || 0;
 
-            let hours = 0;
-            if (hoursValue.includes(":")) {
-                // Handle "H:MM" format
-                const [h, m] = hoursValue.split(":").map(Number);
-                hours = h + (m / 60);
-            } else {
-                hours = parseFloat(hoursValue) || 0;
-            }
-
-            let total = membersCount * hours * hourCharge;
+            let onePersonCharge = 0;
+            let fullHours = Math.floor(hoursValue / 60);
+            let remainingMinutes = hoursValue % 60;
+            onePersonCharge = (fullHours * hourCharge) + (remainingMinutes >= 30 ? halfHourCharge : 0);
+            let total = membersCount * onePersonCharge;
 
             // Add up cart items (quantity[] * itemprice[])
             const quantities = document.querySelectorAll('input[name="quantity[]"]');
@@ -433,51 +440,51 @@ Visitor Entry - Neverland
             document.getElementById("totalAmount").value = total.toFixed(2);
         }
 
-        $(document).ready(function() {
-            $('#phone').on('keyup', function() {
-                let query = $(this).val();
-                $('#name').val('');
-                $('#location').val('');
-                $('#emergencyContact').val('');
-                if (query.length > 0) {
-                    $.ajax({
-                        url: '{{ route('customer.search') }}',
-                        type: 'GET',
-                        data: {
-                            phone: query
-                        },
-                        success: function(data) {
-                            let list = $('#contactList');
-                            list.empty();
-                            if (data.length > 0) {
+        // $(document).ready(function() {
+        //     $('#phone').on('keyup', function() {
+        //         let query = $(this).val();
+        //         $('#name').val('');
+        //         $('#location').val('');
+        //         $('#emergencyContact').val('');
+        //         if (query.length > 0) {
+        //             $.ajax({
+        //                 url: '{{ route('customer.search') }}',
+        //                 type: 'GET',
+        //                 data: {
+        //                     phone: query
+        //                 },
+        //                 success: function(data) {
+        //                     let list = $('#contactList');
+        //                     list.empty();
+        //                     if (data.length > 0) {
 
-                                data.forEach(function(customer) {
-                                    list.append(
-                                        '<li class="list-group-item list-group-item-action" data-name="' +
-                                        customer.name + '">' + customer.contact +
-                                        ' - ' + customer.name +' - ' + customer.location +' - ' + customer.emergency_contact + '</li>');
-                                });
-                            }
-                            // else {
-                            //     list.append(
-                            //     '<li class="list-group-item">No results found</li>');
-                            // }
-                        }
-                    });
-                } else {
-                    $('#contactList').empty();
-                }
-            });
+        //                         data.forEach(function(customer) {
+        //                             list.append(
+        //                                 '<li class="list-group-item list-group-item-action" data-name="' +
+        //                                 customer.name + '">' + customer.contact +
+        //                                 ' - ' + customer.name +' - ' + customer.location +' - ' + customer.emergency_contact + '</li>');
+        //                         });
+        //                     }
+        //                     // else {
+        //                     //     list.append(
+        //                     //     '<li class="list-group-item">No results found</li>');
+        //                     // }
+        //                 }
+        //             });
+        //         } else {
+        //             $('#contactList').empty();
+        //         }
+        //     });
 
-            // Click on list item
-            $(document).on('click', '#contactList li', function() {
-                $('#phone').val($(this).text().split(' - ')[0]);
-                $('#name').val($(this).text().split(' - ')[1]);
-                $('#location').val($(this).text().split(' - ')[2]);
-                $('#emergencyContact').val($(this).text().split(' - ')[3]);
-                $('#contactList').empty();
+        //     // Click on list item
+        //     $(document).on('click', '#contactList li', function() {
+        //         $('#phone').val($(this).text().split(' - ')[0]);
+        //         $('#name').val($(this).text().split(' - ')[1]);
+        //         $('#location').val($(this).text().split(' - ')[2]);
+        //         $('#emergencyContact').val($(this).text().split(' - ')[3]);
+        //         $('#contactList').empty();
 
-            });
-        });
+        //     });
+        // });
     </script>
 @endsection
