@@ -7,7 +7,7 @@
                     <td class="text-center">{{ \Carbon\Carbon::parse($visitor->in_time)->format('h:i A') }}</td>
                     @php
                         $endTime = \Carbon\Carbon::parse($visitor->end_time);
-                        $now = \Carbon\Carbon::now('Asia/Kolkata');
+                        $now = \Carbon\Carbon::now();
                         $diffInMinutes = $now->diffInMinutes($endTime, false); // false → keeps negative values
                     @endphp
                     <td class="text-center {{ $diffInMinutes <= 10 ? 'text-danger fw-bold' : '' }}">{{ \Carbon\Carbon::parse($visitor->end_time)->format('h:i A') }}</td>
