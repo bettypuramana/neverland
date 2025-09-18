@@ -89,8 +89,10 @@ Route::get('/sale/edit/{id}', [App\Http\Controllers\Admin\SalesController::class
 Route::post('/sale/update/{id}', [App\Http\Controllers\Admin\SalesController::class, 'update'])->name('admin.sale.update');
 
 // VisitorController
-Route::get('/visitor/form', [VisitorController::class, 'create'])->name('visitor.form');
+Route::get('/visitor/qr/entry/form', [VisitorController::class, 'qr'])->name('visitor.qr_url');
+Route::get('/visitor/entry-form', [VisitorController::class, 'create'])->name('visitor.entry_form');
 Route::post('/visitor/store', [VisitorController::class, 'store'])->name('visitor.store');
+Route::post('/visitor/get-info', [VisitorController::class, 'get_info'])->name('visitor.get_info');
 // CustomerController
 Route::get('/customer/search', [App\Http\Controllers\Admin\CustomerController::class, 'search'])->name('customer.search');
 
@@ -112,4 +114,4 @@ Route::get('/expenses/category/{id}/daily', [ExpenseController::class, 'category
 
 
 // Route to show QR code
-Route::get('/visitor/qr', [VisitorController::class, 'qr'])->name('visitor.qr');
+

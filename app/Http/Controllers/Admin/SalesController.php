@@ -24,7 +24,7 @@ class SalesController extends Controller
     }
     public function sale_new()
     {
-        $products = ProductMovement::where('movement_type','!=','common')->get();
+        $products = ProductMovement::where('movement_type','!=','common')->where('quantity', '>', 0)->get();
         return view('admin.pos.sale_new',compact('products'));
     }
     public function store(Request $request)
